@@ -50,13 +50,15 @@ docs = [
 ]
 
 [project.entry-points."aiida.data"]
-"pybigdft_plugin" = "aiida_pybigdft_plugin.data:DiffParameters"
+"bigdft_new" = "aiida_pybigdft_plugin.data.BigDFTParameters:BigDFTParameters"
+"bigdftfile" = "aiida_pybigdft_plugin.data.BigDFTFile:BigDFTFile"
+"bigdftlogfile" = "aiida_pybigdft_plugin.data.BigDFTFile:BigDFTLogfile"
 
 [project.entry-points."aiida.calculations"]
-"pybigdft_plugin" = "aiida_pybigdft_plugin.calculations:DiffCalculation"
+"pybigdft_plugin" = "aiida_pybigdft_plugin.calculations:BigDFTCalculation"
 
 [project.entry-points."aiida.parsers"]
-"pybigdft_plugin" = "aiida_pybigdft_plugin.parsers:DiffParser"
+"pybigdft_plugin" = "aiida_pybigdft_plugin.parsers:BigDFTParser"
 
 [project.entry-points."aiida.cmdline.data"]
 "pybigdft_plugin" = "aiida_pybigdft_plugin.cli:data_cli"

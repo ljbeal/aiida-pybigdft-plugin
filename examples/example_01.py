@@ -1,58 +1,77 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 """Run a test calculation on localhost.
-
 Usage: ./example_01.py
 """
+import os
 from os import path
 
 import click
 
-from aiida import cmdline, engine
-from aiida.plugins import CalculationFactory, DataFactory
+from aiida import cmdline
+from aiida.engine import submit
+from aiida.orm import StructureData
 
 from aiida_pybigdft_plugin import helpers
+from aiida_pybigdft_plugin.calculations import BigDFTCalculation
+from aiida_pybigdft_plugin.data import BigDFTParameters
 
-INPUT_DIR = path.join(path.dirname(path.realpath(__file__)), "input_files")
 
-
-def test_run(pybigdft_plugin_code):
+def test_run(bigdft_code):
     """Run a calculation on the localhost computer.
-
     Uses test helpers to create AiiDA Code on the fly.
     """
-    if not pybigdft_plugin_code:
+    if not bigdft_code:
         # get code
         computer = helpers.get_computer()
-        pybigdft_plugin_code = helpers.get_code(
-            entry_point="pybigdft_plugin", computer=computer
-        )
+        bigdft_code = helpers.get_code(entry_point="pybigdft_plugin",
+                                       computer=computer)
 
-    # Prepare input parameters
-    DiffParameters = DataFactory("pybigdft_plugin")
-    parameters = DiffParameters({"ignore-case": True})
+    alat = 4  # angstrom
+    cell = [
+        [
+            alat,
+            0,
+            0,
+        ],
+        [
+            0,
+            alat,
+            0,
+        ],
+        [
+            0,
+            0,
+            alat,
+        ],
+    ]
 
-    SinglefileData = DataFactory("singlefile")
-    file1 = SinglefileData(file=path.join(INPUT_DIR, "file1.txt"))
-    file2 = SinglefileData(file=path.join(INPUT_DIR, "file2.txt"))
+    s = StructureData(cell=cell)
+    s.append_atom(position=(alat / 2, alat / 2, alat / 2), symbols="Ti")
+    s.append_atom(position=(alat / 2, alat / 2, 0), symbols="O")
+    s.append_atom(position=(alat / 2, 0, alat / 2), symbols="O")
 
-    # set up calculation
     inputs = {
-        "code": pybigdft_plugin_code,
-        "parameters": parameters,
-        "file1": file1,
-        "file2": file2,
+        "code": bigdft_code,
+        "structure": s,
         "metadata": {
-            "description": "Test job submission with the aiida_pybigdft_plugin plugin",
+            "options": {
+                "jobname": "TiO2",
+                "local_dir": os.getcwd(),
+                "max_wallclock_seconds": 3600,
+                "queue_name": "mono",
+            }
         },
     }
 
-    # Note: in order to submit your calculation to the aiida daemon, do:
-    # from aiida.engine import submit
-    # future = submit(CalculationFactory('pybigdft_plugin'), **inputs)
-    result = engine.run(CalculationFactory("pybigdft_plugin"), **inputs)
+    bigdft_parameters = {}
+    bigdft_parameters["dft"] = {"ixc": "LDA", "itermax": "5"}
+    bigdft_parameters["output"] = {"orbitals": "binary"}
 
-    computed_diff = result["pybigdft_plugin"].get_content()
-    print(f"Computed diff between files: \n{computed_diff}")
+    inputs["parameters"] = BigDFTParameters(bigdft_parameters)
+
+    result = submit(BigDFTCalculation, **inputs)
+
+    return result
 
 
 @click.command()
@@ -60,11 +79,8 @@ def test_run(pybigdft_plugin_code):
 @cmdline.params.options.CODE()
 def cli(code):
     """Run example.
-
     Example usage: $ ./example_01.py --code diff@localhost
-
     Alternative (creates diff@localhost-test code): $ ./example_01.py
-
     Help: $ ./example_01.py --help
     """
     test_run(code)

@@ -3,15 +3,18 @@ Calculations provided by aiida_pybigdft_plugin.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
+import os
+
+import aiida.orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import SinglefileData
-from aiida.plugins import DataFactory
+from aiida.orm import to_aiida_type
 
-DiffParameters = DataFactory("pybigdft_plugin")
+from aiida_pybigdft_plugin.data.BigDFTParameters import BigDFTParameters
+from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
 
 
-class DiffCalculation(CalcJob):
+class BigDFTCalculation(CalcJob):
     """
     AiiDA calculation plugin wrapping the diff executable.
 
@@ -30,26 +33,17 @@ class DiffCalculation(CalcJob):
         }
         spec.inputs["metadata"]["options"]["parser_name"].default = "pybigdft_plugin"
 
-        # new ports
-        spec.input(
-            "metadata.options.output_filename", valid_type=str, default="patch.diff"
-        )
-        spec.input(
-            "parameters",
-            valid_type=DiffParameters,
-            help="Command line parameters for diff",
-        )
-        spec.input(
-            "file1", valid_type=SinglefileData, help="First file to be compared."
-        )
-        spec.input(
-            "file2", valid_type=SinglefileData, help="Second file to be compared."
-        )
-        spec.output(
-            "pybigdft_plugin",
-            valid_type=SinglefileData,
-            help="diff between file1 and file2.",
-        )
+        # inputs
+        spec.input("metadata.options.local_dir",
+                   valid_type=str,
+                   help="staging directory for local files")
+        spec.input("structure", valid_type=aiida.orm.StructureData)
+        spec.input("parameters", valid_type=BigDFTParameters, default=lambda: BigDFTParameters())
+        spec.input("metadata.options.jobname", valid_type=str)
+
+        # outputs
+        spec.output("logfile", valid_type=BigDFTLogfile)
+        spec.output("timefile", valid_type=BigDFTFile)
 
         spec.exit_code(
             300,
@@ -65,10 +59,19 @@ class DiffCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+        # dump structure
+        output_fname = 'structure.json'
+        output_path = self.inputs.metadata.options.local_dir or ''
+
+        output = os.path.join(output_path, output_fname)
+        self.inputs.structure.get_ase().write(output)
+
+        self.logger.info(f'structure written to file {output}')
+        with open('/home/aiida/plugin_work/debug.txt', 'w+') as f:
+            f.write(f'structure written to file {output}')
+
         codeinfo = datastructures.CodeInfo()
-        codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
-            file1_name=self.inputs.file1.filename, file2_name=self.inputs.file2.filename
-        )
+
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
 
@@ -76,17 +79,7 @@ class DiffCalculation(CalcJob):
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo]
         calcinfo.local_copy_list = [
-            (
-                self.inputs.file1.uuid,
-                self.inputs.file1.filename,
-                self.inputs.file1.filename,
-            ),
-            (
-                self.inputs.file2.uuid,
-                self.inputs.file2.filename,
-                self.inputs.file2.filename,
-            ),
         ]
-        calcinfo.retrieve_list = [self.metadata.options.output_filename]
+        calcinfo.retrieve_list = []
 
         return calcinfo
