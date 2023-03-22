@@ -48,4 +48,4 @@ class BigDFTParameters(Dict):  # pylint: disable=too-many-ancestors
         """
         string = super().__str__()
         string += "\n" + str(self.get_dict())
-        return
+        return string
