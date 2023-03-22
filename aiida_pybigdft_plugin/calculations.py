@@ -69,30 +69,23 @@ class BigDFTCalculation(CalcJob):
 
         # dump structure
         output_fname = 'structure.json'
-        output_path = self.inputs.metadata.options.local_dir or ''
 
-        output = os.path.join(output_path, output_fname)
-        with open('/home/aiida/plugin_work/debug.txt', 'w+') as o:
-            o.write(output)
+        with folder.open(output_fname, 'w') as o:
+            self.inputs.structure.get_ase().write(o)
 
-        debug(f'dumping structure at {output}')
-        if not os.path.isdir(os.path.split(output)[0]):
-            os.makedirs(os.path.split(output)[0])
-
-        self.inputs.structure.get_ase().write(output)
-
-        debug(f'structure written to file {output}', wipe=True)
+        debug(f'structure written to file {output_fname}', wipe=True)
 
         codeinfo = datastructures.CodeInfo()
 
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.cmdline_params = ['--structure', 'structure.json']
+        codeinfo.cmdline_params = ['--structure', output_fname]
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo]
         calcinfo.local_copy_list = [
         ]
-        calcinfo.retrieve_list = []
+        calcinfo.retrieve_list = [
+        ]
 
         return calcinfo

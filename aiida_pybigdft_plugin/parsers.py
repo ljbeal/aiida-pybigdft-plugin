@@ -5,6 +5,7 @@ Register parsers via the "aiida.parsers" entry point in setup.json.
 """
 import os
 import re
+from datetime import datetime
 
 from aiida.common import exceptions
 from aiida.engine import ExitCode
@@ -12,6 +13,13 @@ from aiida.parsers.parser import Parser
 
 from aiida_pybigdft_plugin.calculations import BigDFTCalculation
 from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
+
+
+def debug(msg, wipe=False):
+    mode = 'w+' if wipe else 'a'
+    timestr = datetime.now().strftime('%H:%M:%S')
+    with open('/home/aiida/plugin_work/aiida.log', mode) as o:
+        o.write(f'[{timestr}] {msg}\n')
 
 
 class BigDFTParser(Parser):
@@ -75,26 +83,18 @@ class BigDFTParser(Parser):
             exitcode = self.parse_stderr(stderr)
             if exitcode:
                 self.logger.error("Error in stderr: " + exitcode.message)
-
-        output_filename = self.node.get_option("output_filename")
         # jobname = self.node.get_option('jobname')
         # if jobname is not None:
         #     output_filename = "log-" + jobname + ".yaml"
         # Check that folder content is as expected
         files_retrieved = self.retrieved.list_object_names()
-        files_expected = [output_filename]
+        files_expected = []
         # Note: set(A) <= set(B) checks whether A is a subset of B
         if not set(files_expected) <= set(files_retrieved):
             self.logger.error(
                 f"Found files '{files_retrieved}', expected to find '{files_expected}'"
             )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
-
-        logfile = self.parse_file(output_filename, "logfile", exitcode)
-        timefile = self.parse_file("time.yaml", "timefile", exitcode)
-
-        self.out("logfile", logfile)
-        self.out("timefile", timefile)
 
         return exitcode
 
