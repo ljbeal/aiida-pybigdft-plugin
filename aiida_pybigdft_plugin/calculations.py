@@ -7,6 +7,7 @@ import os
 from datetime import datetime
 
 import aiida.orm
+import yaml
 from aiida.common import datastructures
 from aiida.engine import CalcJob
 
@@ -69,16 +70,22 @@ class BigDFTCalculation(CalcJob):
 
         # dump structure
         output_fname = 'structure.json'
-
         with folder.open(output_fname, 'w') as o:
             self.inputs.structure.get_ase().write(o)
-
         debug(f'structure written to file {output_fname}', wipe=True)
+
+        # dump params
+        debug(f'dumping params {self.inputs.parameters}')
+        params_fname = 'input.yaml'
+        with folder.open(params_fname, 'w') as o:
+            yaml.dump(self.inputs.parameters.get_dict(), o)
+        debug(f'parameters written to file {params_fname}')
 
         codeinfo = datastructures.CodeInfo()
 
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.cmdline_params = ['--structure', output_fname]
+        codeinfo.cmdline_params = ['--structure', output_fname,
+                                   '--parameters', params_fname]
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
