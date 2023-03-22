@@ -4,14 +4,21 @@ Calculations provided by aiida_pybigdft_plugin.
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 import os
+from datetime import datetime
 
 import aiida.orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import to_aiida_type
 
 from aiida_pybigdft_plugin.data.BigDFTParameters import BigDFTParameters
 from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
+
+
+def debug(msg, wipe=False):
+    mode = 'w+' if wipe else 'a'
+    timestr = datetime.now().strftime('%H:%M:%S')
+    with open('/home/aiida/plugin_work/aiida.log', mode) as o:
+        o.write(f'[{timestr}] {msg}\n')
 
 
 class BigDFTCalculation(CalcJob):
@@ -59,21 +66,27 @@ class BigDFTCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+
         # dump structure
         output_fname = 'structure.json'
         output_path = self.inputs.metadata.options.local_dir or ''
 
         output = os.path.join(output_path, output_fname)
+        with open('/home/aiida/plugin_work/debug.txt', 'w+') as o:
+            o.write(output)
+
+        debug(f'dumping structure at {output}')
+        if not os.path.isdir(os.path.split(output)[0]):
+            os.makedirs(os.path.split(output)[0])
+
         self.inputs.structure.get_ase().write(output)
 
-        self.logger.info(f'structure written to file {output}')
-        with open('/home/aiida/plugin_work/debug.txt', 'w+') as f:
-            f.write(f'structure written to file {output}')
+        debug(f'structure written to file {output}', wipe=True)
 
         codeinfo = datastructures.CodeInfo()
 
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.stdout_name = self.metadata.options.output_filename
+        codeinfo.cmdline_params = ['--structure', 'structure.json']
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()

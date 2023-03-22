@@ -56,7 +56,7 @@ def test_run(bigdft_code):
         "metadata": {
             "options": {
                 "jobname": "TiO2",
-                "local_dir": os.getcwd(),
+                "local_dir": '/home/aiida/plugin_work/test',
                 "max_wallclock_seconds": 3600,
                 "queue_name": "mono",
             }
