@@ -88,6 +88,8 @@ class BigDFTParser(Parser):
         #     output_filename = "log-" + jobname + ".yaml"
         # Check that folder content is as expected
         files_retrieved = self.retrieved.list_object_names()
+        debug(f'pwd {os.getcwd()}')
+        debug(f'retrieved {files_retrieved}')
         files_expected = []
         # Note: set(A) <= set(B) checks whether A is a subset of B
         if not set(files_expected) <= set(files_retrieved):
@@ -95,6 +97,15 @@ class BigDFTParser(Parser):
                 f"Found files '{files_retrieved}', expected to find '{files_expected}'"
             )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
+
+        jobname = self.node.get_option("jobname")
+        output_filename = f'log-{jobname}.yaml'
+        debug(f'looking for logfile with name {output_filename}')
+        logfile = self.parse_file(output_filename, "logfile", exitcode)
+        timefile = self.parse_file(f"time-{jobname}.yaml", "timefile", exitcode)
+
+        self.out("logfile", logfile)
+        self.out("timefile", timefile)
 
         return exitcode
 

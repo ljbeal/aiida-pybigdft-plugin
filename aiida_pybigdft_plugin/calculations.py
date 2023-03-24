@@ -29,6 +29,11 @@ class BigDFTCalculation(CalcJob):
     Simple AiiDA plugin wrapper for 'diffing' two files.
     """
 
+    _posinp = "posinp.xyz"
+    _inpfile = "input.yaml"
+    _logfile = "log.yaml"
+    _timefile = "time.yaml"
+
     @classmethod
     def define(cls, spec):
         """Define inputs and outputs of the calculation."""
@@ -69,10 +74,10 @@ class BigDFTCalculation(CalcJob):
         """
 
         # dump structure
-        output_fname = 'structure.json'
-        with folder.open(output_fname, 'w') as o:
+        structure_fname = 'structure.json'
+        with folder.open(structure_fname, 'w') as o:
             self.inputs.structure.get_ase().write(o)
-        debug(f'structure written to file {output_fname}', wipe=True)
+        debug(f'structure written to file {structure_fname}', wipe=True)
 
         # dump params
         debug(f'dumping params {self.inputs.parameters}')
@@ -81,11 +86,14 @@ class BigDFTCalculation(CalcJob):
             yaml.dump(self.inputs.parameters.get_dict(), o)
         debug(f'parameters written to file {params_fname}')
 
+        jobname = self.metadata.options.jobname
+
         codeinfo = datastructures.CodeInfo()
 
         codeinfo.code_uuid = self.inputs.code.uuid
-        codeinfo.cmdline_params = ['--structure', output_fname,
-                                   '--parameters', params_fname]
+        codeinfo.cmdline_params = ['--structure', structure_fname,
+                                   '--parameters', params_fname,
+                                   '--jobname', jobname]
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
@@ -93,6 +101,9 @@ class BigDFTCalculation(CalcJob):
         calcinfo.local_copy_list = [
         ]
         calcinfo.retrieve_list = [
+            f'log-{jobname}.yaml',
+            f"./data-{jobname}/time-{jobname}.yaml",
+            ["./debug/bigdft-err*", ".", 2],
         ]
 
         return calcinfo
