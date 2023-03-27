@@ -87,22 +87,16 @@ class BigDFTCalculation(CalcJob):
             yaml.dump(self.inputs.parameters.get_dict(), o)
         debug(f'parameters written to file {params_fname}')
 
+        # submission parameters
         jobname = self.metadata.options.jobname
+        sub_params_file = self.dump_submission_parameters(folder)
 
         codeinfo = datastructures.CodeInfo()
-
-        omp = self.metadata.options.resources.get("num_cores_per_mpiproc", None)
-        if omp is not None:
-            self.metadata.options.environment_variables["OMP_NUM_CORES"] = omp
-
-        self.metadata.options.append_text = f"# This text is appended in prepare, omp = {omp}"
-        self.metadata.options.custom_scheduler_commands = "# custom_commands"
-        debug(f'running with OMP {omp}')
 
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.cmdline_params = ['--structure', structure_fname,
                                    '--parameters', params_fname,
-                                   '--jobname', jobname]
+                                   '--submission', sub_params_file]
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
@@ -116,3 +110,21 @@ class BigDFTCalculation(CalcJob):
         ]
 
         return calcinfo
+
+    def dump_submission_parameters(self, folder):
+        sub_params_file = 'submission_parameters.yaml'
+        sub_params = {"jobname": self.metadata.options.jobname}
+
+        omp = self.metadata.options.resources.get("num_cores_per_mpiproc", None)
+        if omp is not None:
+            self.metadata.options.environment_variables["OMP_NUM_CORES"] = omp
+            sub_params["OMP"] = omp
+
+        sub_params["mpi"] = self.metadata.options.resources
+
+        debug(f'running with OMP {omp}')
+
+        with folder.open(sub_params_file, 'w') as o:
+            yaml.dump(sub_params, o)
+
+        return sub_params_file
