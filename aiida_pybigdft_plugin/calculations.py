@@ -91,6 +91,7 @@ class BigDFTCalculation(CalcJob):
         jobname = self.metadata.options.jobname
         sub_params_file = self.dump_submission_parameters(folder)
 
+        # aiida calcinfo setup
         codeinfo = datastructures.CodeInfo()
 
         codeinfo.code_uuid = self.inputs.code.uuid
