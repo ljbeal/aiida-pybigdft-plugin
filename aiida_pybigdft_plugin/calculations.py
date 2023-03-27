@@ -15,10 +15,13 @@ from aiida_pybigdft_plugin.data.BigDFTParameters import BigDFTParameters
 from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
 
 
-def debug(msg, wipe=False):
+def debug(msg, wipe=False, time=True):
     mode = 'w+' if wipe else 'a'
     timestr = datetime.now().strftime('%H:%M:%S')
     with open('/home/aiida/plugin_work/aiida.log', mode) as o:
+        if not time:
+            o.write(f'{msg}\n')
+            return
         o.write(f'[{timestr}] {msg}\n')
 
 
@@ -122,6 +125,11 @@ class BigDFTCalculation(CalcJob):
             sub_params["OMP"] = omp
 
         sub_params["mpi"] = self.metadata.options.resources
+
+        sub_params["mpirun command"] = ' '.join(self.node.computer.get_mpirun_command())
+
+        # this actually updates the computer mpirun command permanently
+        # self.node.computer.set_mpirun_command([])
 
         debug(f'running with OMP {omp}')
 
