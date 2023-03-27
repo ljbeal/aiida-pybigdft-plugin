@@ -59,6 +59,11 @@ def test_run(bigdft_code):
                 "local_dir": '/home/aiida/plugin_work/test',
                 "max_wallclock_seconds": 3600,
                 "queue_name": "mono",
+                "resources": {
+                    "tot_num_mpiprocs": 4,
+                    "num_cores_per_mpiproc": 2,
+                    "num_machines": 1
+                }
             }
         },
     }
