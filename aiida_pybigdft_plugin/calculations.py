@@ -3,6 +3,7 @@ Calculations provided by aiida_pybigdft_plugin.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
+import getpass
 import os
 from datetime import datetime
 
@@ -14,11 +15,20 @@ from aiida.engine import CalcJob
 from aiida_pybigdft_plugin.data.BigDFTParameters import BigDFTParameters
 from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
 
+DEBUG = True
+DEBUG_PATHS = {'aiida': '/home/aiida/plugin_work/aiida.log',
+               'test': '/home/test/pybigft_plugin_volume/aiida.log'}
+
 
 def debug(msg, wipe=False, time=True):
+    if not DEBUG:
+        return
     mode = 'w+' if wipe else 'a'
     timestr = datetime.now().strftime('%H:%M:%S')
-    with open('/home/aiida/plugin_work/aiida.log', mode) as o:
+
+    usr = getpass.getuser()
+
+    with open(DEBUG_PATHS[usr], mode) as o:
         if not time:
             o.write(f'{msg}\n')
             return
@@ -120,18 +130,23 @@ class BigDFTCalculation(CalcJob):
         sub_params = {"jobname": self.metadata.options.jobname}
 
         omp = self.metadata.options.resources.get("num_cores_per_mpiproc", None)
+
+        debug(f'running with OMP {omp}')
         if omp is not None:
             self.metadata.options.environment_variables["OMP_NUM_CORES"] = omp
             sub_params["OMP"] = omp
+            debug(f'environment variables updated')
 
         sub_params["mpi"] = self.metadata.options.resources
 
         sub_params["mpirun command"] = ' '.join(self.node.computer.get_mpirun_command())
 
-        # this actually updates the computer mpirun command permanently
-        # self.node.computer.set_mpirun_command([])
+        # These seem to do nothing
+        # self.metadata.options.append_text = f"# This text is appended in prepare, omp = {omp}"
+        # self.metadata.options.custom_scheduler_commands = "# custom_commands"
 
-        debug(f'running with OMP {omp}')
+        # This actually updates the computer mpirun command permanently
+        # self.node.computer.set_mpirun_command([])
 
         with folder.open(sub_params_file, 'w') as o:
             yaml.dump(sub_params, o)
