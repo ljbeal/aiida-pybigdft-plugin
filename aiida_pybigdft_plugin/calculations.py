@@ -129,15 +129,24 @@ class BigDFTCalculation(CalcJob):
         sub_params_file = 'submission_parameters.yaml'
         sub_params = {"jobname": self.metadata.options.jobname}
 
-        omp = self.metadata.options.resources.get("num_cores_per_mpiproc", None)
+        sub_params["OMP"] = self.metadata.options.resources.get("num_cores_per_mpiproc", None)
+        sub_params["mpi"] = self.metadata.options.resources.get("tot_num_mpiprocs", None)
+        sub_params["nodes"] = self.metadata.options.resources.get("num_machines", None)
 
-        debug(f'running with OMP {omp}')
-        if omp is not None:
-            self.metadata.options.environment_variables["OMP_NUM_CORES"] = omp
-            sub_params["OMP"] = omp
+        debug(f'running with OMP {sub_params["OMP"]}')
+        if sub_params["OMP"] is not None:
+            # self.metadata.options.environment_variables["OMP_NUM_CORES"] = sub_params["OMP"]
+            # self.metadata.options.environment_variables["PYBIGDFT_DEBUG"] = "True"
+            #
+            # self.metadata.options.custom_scheduler_commands = f"# Custom Commands\nexport OMP_NUM_CORES={sub_params['OMP']}"
+
             debug(f'environment variables updated')
 
-        sub_params["mpi"] = self.metadata.options.resources
+        debug('metadata.options')
+        for k, v in self.metadata.options.items():
+            debug(f'{k}: {v}')
+
+        sub_params["aiida_resources"] = self.metadata.options.resources
 
         sub_params["mpirun command"] = ' '.join(self.node.computer.get_mpirun_command())
 
