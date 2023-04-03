@@ -4,7 +4,6 @@ Calculations provided by aiida_pybigdft_plugin.
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 import getpass
-import os
 from datetime import datetime
 
 import aiida.orm
@@ -15,13 +14,16 @@ from aiida.engine import CalcJob
 from aiida_pybigdft_plugin.data.BigDFTParameters import BigDFTParameters
 from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
 
+try:
+    from aiida_pybigdft_plugin.paths import DEBUG_PATHS
+except ImportError:
+    DEBUG_PATHS = None
+
 DEBUG = True
-DEBUG_PATHS = {'aiida': '/home/aiida/plugin_work/aiida.log',
-               'test': '/home/test/pybigft_plugin_volume/aiida.log'}
 
 
 def debug(msg, wipe=False, time=True):
-    if not DEBUG:
+    if not DEBUG or not DEBUG_PATHS:
         return
     mode = 'w+' if wipe else 'a'
     timestr = datetime.now().strftime('%H:%M:%S')
