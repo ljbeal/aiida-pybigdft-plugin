@@ -6,6 +6,7 @@ Register parsers via the "aiida.parsers" entry point in setup.json.
 import os
 import re
 from datetime import datetime
+import getpass
 
 from aiida.common import exceptions
 from aiida.engine import ExitCode
@@ -14,11 +15,21 @@ from aiida.parsers.parser import Parser
 from aiida_pybigdft_plugin.calculations import BigDFTCalculation
 from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
 
+try:
+    from aiida_pybigdft_plugin.paths import DEBUG_PATHS
+except ImportError:
+    DEBUG_PATHS = None
+
 
 def debug(msg, wipe=False):
+    if not DEBUG_PATHS:
+        return
     mode = 'w+' if wipe else 'a'
     timestr = datetime.now().strftime('%H:%M:%S')
-    with open('/home/aiida/plugin_work/aiida.log', mode) as o:
+
+    usr = getpass.getuser()
+
+    with open(DEBUG_PATHS[usr], mode) as o:
         o.write(f'[{timestr}] {msg}\n')
 
 
