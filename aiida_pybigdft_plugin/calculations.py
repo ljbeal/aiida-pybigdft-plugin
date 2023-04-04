@@ -10,6 +10,7 @@ import aiida.orm
 import yaml
 from aiida.common import datastructures
 from aiida.engine import CalcJob
+from aiida.orm import User
 
 from aiida_pybigdft_plugin.data.BigDFTParameters import BigDFTParameters
 from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
@@ -137,7 +138,11 @@ class BigDFTCalculation(CalcJob):
 
         sub_params["aiida_resources"] = self.metadata.options.resources
 
-        sub_params["mpirun command"] = ' '.join(self.node.computer.get_mpirun_command())
+        computer = self.node.computer
+        user = User.objects.get_default()
+
+        sub_params["mpirun command"] = ' '.join(computer.get_mpirun_command())
+        sub_params["connection"] = computer.get_authinfo(user).get_auth_params()
 
         # This actually updates the computer mpirun command permanently
         # self.node.computer.set_mpirun_command([])
