@@ -3,7 +3,7 @@ from click.testing import CliRunner
 
 from aiida.plugins import DataFactory
 
-from aiida_pybigdft_plugin.cli import export, list_
+from aiida_bigdft.cli import export, list_
 
 
 # pylint: disable=attribute-defined-outside-init

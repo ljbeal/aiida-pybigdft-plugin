@@ -1,9 +1,10 @@
 """
-Calculations provided by aiida_pybigdft_plugin.
+Calculations provided by aiida_bigdft.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 import getpass
+import os
 from datetime import datetime
 
 import aiida.orm
@@ -12,11 +13,11 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import User
 
-from aiida_pybigdft_plugin.data.BigDFTParameters import BigDFTParameters
-from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
+from aiida_bigdft.data.BigDFTParameters import BigDFTParameters
+from aiida_bigdft.data.BigDFTFile import BigDFTFile, BigDFTLogfile
 
 try:
-    from aiida_pybigdft_plugin.paths import DEBUG_PATHS
+    from aiida_bigdft.paths import DEBUG_PATHS
 except ImportError:
     DEBUG_PATHS = None
 
@@ -61,7 +62,7 @@ class BigDFTCalculation(CalcJob):
             "num_mpiprocs_per_machine": 1,
             "tot_num_mpiprocs": 1
         }
-        spec.inputs["metadata"]["options"]["parser_name"].default = "pybigdft_plugin"
+        spec.inputs["metadata"]["options"]["parser_name"].default = "bigdft"
 
         # inputs
         spec.input("metadata.options.local_dir",
@@ -75,11 +76,14 @@ class BigDFTCalculation(CalcJob):
         spec.output("logfile", valid_type=BigDFTLogfile)
         spec.output("timefile", valid_type=BigDFTFile)
 
-        spec.exit_code(
-            300,
-            "ERROR_MISSING_OUTPUT_FILES",
-            message="Calculation did not produce all expected output files.",
-        )
+        spec.exit_code(100, 'ERROR_MISSING_OUTPUT_FILES',
+                       message='Calculation did not produce all expected output files.')
+        spec.exit_code(101, 'ERROR_PARSING_FAILED',
+                       message='Calculation did not produce all expected output files.')
+        spec.exit_code(400, 'ERROR_OUT_OF_WALLTIME',
+                       message='Calculation did not finish because of a walltime issue.')
+        spec.exit_code(401, 'ERROR_OUT_OF_MEMORY',
+                       message='Calculation did not finish because of memory limit')
 
     def prepare_for_submission(self, folder):
         """
@@ -89,6 +93,8 @@ class BigDFTCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+
+        debug(f'operating in dir {os.getcwd()}')
 
         # dump structure
         structure_fname = 'structure.json'
@@ -147,6 +153,7 @@ class BigDFTCalculation(CalcJob):
         # This actually updates the computer mpirun command permanently
         # self.node.computer.set_mpirun_command([])
 
+        debug(f'dumping submission params {sub_params}')
         with folder.open(sub_params_file, 'w') as o:
             yaml.dump(sub_params, o)
 

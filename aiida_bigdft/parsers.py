@@ -12,11 +12,11 @@ from aiida.common import exceptions
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
 
-from aiida_pybigdft_plugin.calculations import BigDFTCalculation
-from aiida_pybigdft_plugin.data.BigDFTFile import BigDFTFile, BigDFTLogfile
+from aiida_bigdft.calculations import BigDFTCalculation
+from aiida_bigdft.data.BigDFTFile import BigDFTFile, BigDFTLogfile
 
 try:
-    from aiida_pybigdft_plugin.paths import DEBUG_PATHS
+    from aiida_bigdft.paths import DEBUG_PATHS
 except ImportError:
     DEBUG_PATHS = None
 

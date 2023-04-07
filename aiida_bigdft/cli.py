@@ -1,5 +1,5 @@
 """
-Command line interface (cli) for aiida_pybigdft_plugin.
+Command line interface (cli) for aiida_bigdft.
 
 Register new commands either via the "console_scripts" entry point or plug them
 directly into the 'verdi' command by using AiiDA-specific entry points like

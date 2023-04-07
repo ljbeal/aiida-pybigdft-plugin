@@ -48,7 +48,7 @@ jobs:
       env:
         # show timings of tests
         PYTEST_ADDOPTS: "--durations=0"
-      run: pytest --cov aiida_pybigdft_plugin --cov-append .
+      run: pytest --cov aiida_bigdft --cov-append .
 
   docs:
     runs-on: ubuntu-latest

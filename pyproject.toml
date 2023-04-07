@@ -5,8 +5,8 @@ build-backend = "flit_core.buildapi"
 
 [project]
 # See https://www.python.org/dev/peps/pep-0621/
-name = "aiida-pybigdft-plugin"
-dynamic = ["version"]  # read from aiida_pybigdft_plugin/__init__.py
+name = "aiida-bigdft"
+dynamic = ["version"]  # read from aiida_bigdft/__init__.py
 description = "AiiDA plugin to interface with the PyBigDFT Translation layer"
 authors = [{name = "Louis Beal", email = "louis.j.beal@gmail.com"}]
 readme = "README.md"
@@ -22,7 +22,7 @@ classifiers = [
 keywords = ["aiida", "plugin"]
 requires-python = ">=3.7"
 dependencies = [
-    "aiida-core>=2.0,<3",
+    "aiida-core",
     "pybigdft",
     "ase",
     "voluptuous"
@@ -52,21 +52,27 @@ docs = [
 ]
 
 [project.entry-points."aiida.data"]
-"bigdft_new" = "aiida_pybigdft_plugin.data.BigDFTParameters:BigDFTParameters"
-"bigdftfile" = "aiida_pybigdft_plugin.data.BigDFTFile:BigDFTFile"
-"bigdftlogfile" = "aiida_pybigdft_plugin.data.BigDFTFile:BigDFTLogfile"
+"bigdft" = "aiida_bigdft.data.BigDFTParameters:BigDFTParameters"
+#"pybigdft" = "aiida_bigdft.data.BigDFTParameters:BigDFTParameters"
+"bigdftfile" = "aiida_bigdft.data.BigDFTFile:BigDFTFile"
+"bigdftlogfile" = "aiida_bigdft.data.BigDFTFile:BigDFTLogfile"
 
 [project.entry-points."aiida.calculations"]
-"pybigdft_plugin" = "aiida_pybigdft_plugin.calculations:BigDFTCalculation"
+"bigdft" = "aiida_bigdft.calculations:BigDFTCalculation"
 
 [project.entry-points."aiida.parsers"]
-"pybigdft_plugin" = "aiida_pybigdft_plugin.parsers:BigDFTParser"
+"bigdft" = "aiida_bigdft.parsers:BigDFTParser"
 
 [project.entry-points."aiida.cmdline.data"]
-"pybigdft_plugin" = "aiida_pybigdft_plugin.cli:data_cli"
+"bigdft" = "aiida_bigdft.cli:data_cli"
+
+
+[project.entry-points."aiida.workflows"]
+"bigdft" = "aiida_bigdft.workflows.base:BigDFTBaseWorkChain"
+"bigdft.relax" = "aiida_bigdft.workflows.relax:BigDFTRelaxWorkChain"
 
 [tool.flit.module]
-name = "aiida_pybigdft_plugin"
+name = "aiida_bigdft"
 
 [tool.pylint.format]
 max-line-length = 125
@@ -91,7 +97,7 @@ filterwarnings = [
 [tool.coverage.run]
 # Configuration of [coverage.py](https://coverage.readthedocs.io)
 # reporting which lines of your plugin are covered by tests
-source=["aiida_pybigdft_plugin"]
+source=["aiida_bigdft"]
 
 [tool.isort]
 # Configuration of [isort](https://isort.readthedocs.io)

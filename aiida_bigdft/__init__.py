@@ -1,5 +1,5 @@
 """
-aiida_pybigdft_plugin
+aiida_bigdft
 
 AiiDA plugin to interface with the PyBigDFT Translation layer
 """

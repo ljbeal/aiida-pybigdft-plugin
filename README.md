@@ -16,12 +16,12 @@ intended to help developers get started with their AiiDA plugins.
 * [`.github/`](.github/): [Github Actions](https://github.com/features/actions) configuration
   * [`ci.yml`](.github/workflows/ci.yml): runs tests, checks test coverage and builds documentation at every new commit
   * [`publish-on-pypi.yml`](.github/workflows/publish-on-pypi.yml): automatically deploy git tags to PyPI - just generate a [PyPI API token](https://pypi.org/help/#apitoken) for your PyPI account and add it to the `pypi_token` secret of your github repository
-* [`aiida_pybigdft_plugin/`](aiida_pybigdft_plugin/): The main source code of the plugin package
-  * [`data/`](aiida_pybigdft_plugin/data/): A new `DiffParameters` data class, used as input to the `DiffCalculation` `CalcJob` class
-  * [`calculations.py`](aiida_pybigdft_plugin/calculations.py): A new `DiffCalculation` `CalcJob` class
-  * [`cli.py`](aiida_pybigdft_plugin/cli.py): Extensions of the `verdi data` command line interface for the `DiffParameters` class
-  * [`helpers.py`](aiida_pybigdft_plugin/helpers.py): Helpers for setting up an AiiDA code for `diff` automatically
-  * [`parsers.py`](aiida_pybigdft_plugin/parsers.py): A new `Parser` for the `DiffCalculation`
+* [`aiida_pybigdft_plugin/`](aiida_bigdft/): The main source code of the plugin package
+  * [`data/`](aiida_bigdft/data/): A new `DiffParameters` data class, used as input to the `DiffCalculation` `CalcJob` class
+  * [`calculations.py`](aiida_bigdft/calculations.py): A new `DiffCalculation` `CalcJob` class
+  * [`cli.py`](aiida_bigdft/cli.py): Extensions of the `verdi data` command line interface for the `DiffParameters` class
+  * [`helpers.py`](aiida_bigdft/helpers.py): Helpers for setting up an AiiDA code for `diff` automatically
+  * [`parsers.py`](aiida_bigdft/parsers.py): A new `Parser` for the `DiffCalculation`
 * [`docs/`](docs/): A documentation template ready for publication on [Read the Docs](http://aiida-diff.readthedocs.io/en/latest/)
 * [`examples/`](examples/): An example of how to submit a calculation using this plugin
 * [`tests/`](tests/): Basic regression tests using the [pytest](https://docs.pytest.org/en/latest/) framework (submitting a calculation, ...). Install `pip install -e .[testing]` and run `pytest`.

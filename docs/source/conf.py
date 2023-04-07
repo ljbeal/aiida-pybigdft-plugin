@@ -16,7 +16,7 @@ import time
 
 from aiida.manage.configuration import load_documentation_profile
 
-import aiida_pybigdft_plugin
+import aiida_bigdft
 
 # -- AiiDA-related setup --------------------------------------------------
 
@@ -78,7 +78,7 @@ copyright = f"{copyright_year_string}, {copyright_owners}. All rights reserved"
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-release = aiida_pybigdft_plugin.__version__
+release = aiida_bigdft.__version__
 # The short X.Y version.
 version = ".".join(release.split(".")[:2])
 
@@ -197,7 +197,7 @@ def run_apidoc(_):
     source_dir = os.path.abspath(os.path.dirname(__file__))
     apidoc_dir = os.path.join(source_dir, "apidoc")
     package_dir = os.path.join(
-        source_dir, os.pardir, os.pardir, "aiida_pybigdft_plugin"
+        source_dir, os.pardir, os.pardir, "aiida_bigdft"
     )
 
     # In #1139, they suggest the route below, but this ended up

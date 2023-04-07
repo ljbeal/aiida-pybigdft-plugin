@@ -11,19 +11,19 @@ from aiida import cmdline
 from aiida.engine import submit
 from aiida.orm import StructureData
 
-from aiida_pybigdft_plugin import helpers
-from aiida_pybigdft_plugin.calculations import BigDFTCalculation
-from aiida_pybigdft_plugin.data import BigDFTParameters
+from aiida_bigdft import helpers
+from aiida_bigdft.calculations import BigDFTCalculation
+from aiida_bigdft.data import BigDFTParameters
 
 
-def test_run(bigdft_code):
+def test_run(code):
     """Run a calculation on the localhost computer.
     Uses test helpers to create AiiDA Code on the fly.
     """
-    if not bigdft_code:
+    if not code:
         # get code
         computer = helpers.get_computer()
-        bigdft_code = helpers.get_code(entry_point="pybigdft_plugin",
+        code = helpers.get_code(entry_point="pybigdft_plugin",
                                        computer=computer)
 
     alat = 4  # angstrom
@@ -51,19 +51,21 @@ def test_run(bigdft_code):
     s.append_atom(position=(alat / 2, 0, alat / 2), symbols="O")
 
     inputs = {
-        "code": bigdft_code,
+        "code": code,
         "structure": s,
         "metadata": {
             "options": {
                 "jobname": "TiO2",
                 "local_dir": '/home/aiida/plugin_work/test',
                 "max_wallclock_seconds": 3600,
-                "queue_name": "mono",
+                "queue_name": "short",
                 "resources": {
-                    "tot_num_mpiprocs": 4,
-                    "num_cores_per_mpiproc": 2,
-                    "num_machines": 1
-                }
+                    # "num_cores_per_machine": 16,
+                    "num_cores_per_mpiproc": 4,
+                    "num_mpiprocs_per_machine": 4,
+                    "num_machines": 2,
+                },
+                "withmpi": False,
             }
         },
     }
